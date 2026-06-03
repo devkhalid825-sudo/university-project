@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fuzzy Traffic Density Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-primary: hsl(220, 15%, 12%);
+      --bg-card: hsl(220, 15%, 18%);
+      --accent: hsl(210, 95%, 55%);
+      --text-primary: hsl(0, 0%, 92%);
+      --text-muted: hsl(0, 0%, 60%);
+      --glass-bg: rgba(255, 255, 255, 0.06);
+      --radius: 12px;
+      --transition: 0.25s ease;
+    }
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border-radius: var(--radius);
+      padding: 2rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      transition: var(--transition);
+    }
+    .card:hover { transform: translateY(-4px); }
+    h1 { font-size: 1.5rem; margin-bottom: 1rem; text-align:center; color: var(--accent); }
+    .formula { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4; }
+    label { display:block; margin-top:0.8rem; font-weight:600; }
+    input[type="number"] {
+      width:100%;
+      padding:0.6rem;
+      margin-top:0.3rem;
+      border:none;
+      border-radius:var(--radius);
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+    button {
+      margin-top:1.2rem;
+      width:100%;
+      padding:0.8rem;
+      border:none;
+      border-radius:var(--radius);
+      background: var(--accent);
+      color:#fff;
+      font-size:1rem;
+      font-weight:600;
+      cursor:pointer;
+      transition: var(--transition);
+    }
+    button:hover { background: hsl(210,95%,48%); }
+    .result { margin-top:1.5rem; background: var(--bg-card); padding:0.8rem; border-radius:var(--radius); text-align:center; white-space: pre-wrap; }
+    @media (max-width:480px){ .card{padding:1.5rem;} }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Fuzzy Traffic Density</h1>
+    <div class="formula">
+      <strong>Formula (0‑100%):</strong><br/>
+      <code>Density = min(100, 6 × Cars + 12 × Trucks)</code><br/>
+      Cars → 6 % each, Trucks → 12 % each.<br/>
+      Emergency status = "emergency" if any ambulance detected, otherwise "normal".
+    </div>
+    <label for="cars">Cars Count</label>
+    <input type="number" id="cars" min="0" value="0" />
+    <label for="trucks">Trucks Count</label>
+    <input type="number" id="trucks" min="0" value="0" />
+    <label for="ambulance">Ambulance Present?</label>
+    <select id="ambulance">
+      <option value="0">No</option>
+      <option value="1">Yes</option>
+    </select>
+    <button id="calcBtn">Calculate</button>
+    <div id="result" class="result" style="display:none;"></div>
+  </div>
+  <script>
+    const calcBtn = document.getElementById('calcBtn');
+    const resultDiv = document.getElementById('result');
+    calcBtn.addEventListener('click', async () => {
+      const cars = parseInt(document.getElementById('cars').value) || 0;
+      const trucks = parseInt(document.getElementById('trucks').value) || 0;
+      const ambul = document.getElementById('ambulance').value === '1';
+      const density = Math.min(100, (cars * 6) + (trucks * 12));
+      const emergency = ambul ? 'emergency' : 'normal';
+      try {
+        const resp = await fetch('/api/fuzzy/calculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trafficDensity: density, emergencyStatus: emergency })
+        });
+        const data = await resp.json();
+        resultDiv.style.display = 'block';
+        if (data.success) {
+          resultDiv.textContent = JSON.stringify(data.fuzzyDetails, null, 2);
+        } else {
+          resultDiv.textContent = 'Error: ' + (data.error || 'unknown');
+        }
+      } catch (e) {
+        resultDiv.style.display = 'block';
+        resultDiv.textContent = 'Network error: ' + e.message;
+      }
+    });
+  </script>
+</body>
+</html>
