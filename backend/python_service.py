@@ -464,9 +464,10 @@ class ServiceHTTPHandler(BaseHTTPRequestHandler):
 
 
 def run(port=5002):
-    server_address = ('127.0.0.1', port)
+    host = '0.0.0.0'  # Railway requires 0.0.0.0
+    server_address = (host, port)
     httpd = ThreadingHTTPServer(server_address, ServiceHTTPHandler)
-    print(f"Python service running at http://127.0.0.1:{port}")
+    print(f"Python service running at http://{host}:{port}")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
@@ -477,7 +478,8 @@ def run(port=5002):
 
 
 if __name__ == '__main__':
-    port_val = 5002
+    # Railway injects PORT env variable automatically
+    port_val = int(os.environ.get('PORT', 5002))
     if len(sys.argv) > 1:
         try:
             port_val = int(sys.argv[1])

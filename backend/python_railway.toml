@@ -1,0 +1,7 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "python python_service.py"
+healthcheckPath = "/health"
+restartPolicyType = "ON_FAILURE"

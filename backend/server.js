@@ -58,7 +58,7 @@ mongoose.connect(MONGODB_URI)
 // Track active parallel processes (PDC)
 let activeProcessCount = 0;
 
-const PYTHON_SERVICE_URL = 'http://127.0.0.1:5002';
+const PYTHON_SERVICE_URL = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:5002';
 
 // Start the persistent Python service
 let pythonServiceProcess = null;
