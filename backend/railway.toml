@@ -5,3 +5,6 @@ builder = "NIXPACKS"
 startCommand = "node server.js"
 healthcheckPath = "/api/pdc/status"
 restartPolicyType = "ON_FAILURE"
+
+[[services]]
+port = 5001
